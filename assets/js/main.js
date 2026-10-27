@@ -115,34 +115,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const bundleData = [
     {
       index: 0,
-      title: '1 Box (14 Daily Shots)',
-      shots: 14,
-      price: 899,
-      original: 1299,
-      discount: '31% की छूट',
-      desc: '2 Weeks Blood Sugar Balancing Starter Pack'
+      title: '30 Days Pack (30 Sachets x 20ml)',
+      shots: 30,
+      price: 1199,
+      original: 1999,
+      discount: '40% की छूट',
+      desc: '1 Month Blood Sugar Support (30 Sachets x 20ml)'
     },
     {
       index: 1,
-      title: '2 Boxes (28 Daily Shots - 1 Month)',
-      shots: 28,
-      price: 1599,
-      original: 2598,
-      discount: '38% की भारी छूट',
-      desc: 'Most Popular: Complete 1 Month Blood Sugar Support'
-    },
-    {
-      index: 2,
-      title: '4 Boxes (56 Daily Shots - 2 Months)',
-      shots: 56,
-      price: 2899,
-      original: 5196,
-      discount: '44% की महा बचत',
-      desc: 'Best Value: 2 Months Sustained HbA1c & Pancreatic Care'
+      title: '60 Days Pack (60 Sachets x 20ml)',
+      shots: 60,
+      price: 1999,
+      original: 3998,
+      discount: '50% की महा बचत',
+      desc: 'Best Value: 2 Months Sustained HbA1c & Blood Sugar Course (60 Sachets x 20ml)'
     }
   ];
 
-  let selectedBundleIndex = 1; // Default: 2 Boxes (Most Popular)
+  let selectedBundleIndex = 0; // Default: 30 Days Pack (₹1,199)
 
   function updateBundleState(index) {
     selectedBundleIndex = index;
@@ -182,8 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
     card.addEventListener('click', () => updateBundleState(i));
   });
 
-  // Initialize with index 1 (Most popular)
-  updateBundleState(1);
+  // Initialize with index 0 (30 Days Pack - ₹1,199)
+  updateBundleState(0);
 
   // ==========================================================================
   // 3. Duplicate Contact Validation (24-Hour Prevention)
@@ -274,6 +265,16 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       openModal(codModal);
+
+      // Meta Pixel: InitiateCheckout event
+      if (typeof fbq === 'function') {
+        const bundle = bundleData[selectedBundleIndex] || bundleData[0];
+        fbq('track', 'InitiateCheckout', {
+          content_name: bundle.title,
+          value: bundle.price,
+          currency: 'INR'
+        });
+      }
     });
   });
 
@@ -359,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const address = document.getElementById('modalCodAddress')?.value.trim() || '';
       const city = document.getElementById('modalCodCity')?.value.trim() || '';
       const state = document.getElementById('modalCodState')?.value.trim() || '';
-      const bundle = bundleData[selectedBundleIndex] || bundleData[1];
+      const bundle = bundleData[selectedBundleIndex] || bundleData[0];
 
       // 1. Check if contact number was already submitted within 24 hours
       if (checkDuplicateContact(phone)) {
@@ -414,6 +415,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 3. Mark contact number as submitted for 24 hours
       saveSubmittedContact(phone);
+
+      // 4. Meta Pixel: Lead Event Tracking
+      if (typeof fbq === 'function') {
+        fbq('track', 'Lead', {
+          content_name: bundle.title,
+          value: bundle.price,
+          currency: 'INR',
+          order_id: orderId
+        });
+        console.log('Meta Pixel Lead event tracked successfully:', orderId, bundle.title, bundle.price);
+      }
 
       if (submitBtn) {
         submitBtn.innerHTML = originalText;
